@@ -40,11 +40,16 @@ venv.bak/
 Thumbs.db
 
 # Project specific
-data/*.mp4
-data/*.avi
-data/*.mov
+input/*.mp4
+input/*.avi
+input/*.mov
 output/*.mp4
 output/*.avi
+output/*.mov
+stubs/*.pkl
+runs/
+*.pt
+datasets/*
 
 # Logs
 *.log
