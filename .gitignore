@@ -23,6 +23,7 @@ wheels/
 
 # Virtual environments
 venv/
+venv_*/
 env/
 ENV/
 env.bak/
@@ -53,3 +54,6 @@ datasets/*
 
 # Logs
 *.log
+
+# Claude specific
+CLAUDE.md
