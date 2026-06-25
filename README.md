@@ -1,6 +1,6 @@
 # Football Analytics Pipeline
 
-Computer-vision football analysis pipeline with YOLO, ByteTrack, OpenCV, and Python.
+Computer vision football analysis pipeline with YOLO, ByteTrack, OpenCV, and Python.
 
 ## About the project
 
@@ -15,7 +15,7 @@ This project analyzes a football video and produces an annotated output video wi
 
 ### Context
 
-The project was created to learn and apply practical computer-vision concepts in a real-world scenario.
+The project was created to learn and apply practical computer vision concepts in a real-world scenario.
 It focuses on building an end-to-end pipeline, integrating model and tracker into a cohesive video analytics workflow, with the goal of providing an analytics baseline that can be extended and retrained on custom data.
 
 ### How It Works (High Level)
