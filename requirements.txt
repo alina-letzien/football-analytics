@@ -3,5 +3,5 @@ opencv-python==4.13.0.92
 torch==2.11.0
 torchvision==0.26.0
 numpy==2.5.0
-scikit-learn==1.8.0
+scikit-learn==1.9.0
 supervision==0.29.1
