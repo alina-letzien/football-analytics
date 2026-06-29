@@ -57,9 +57,16 @@ football-analytics/
 │   ├── camera_motion.py
 │   ├── perspective_transformer.py
 │   └── speed_distance_calculator.py
+├── tests/
+│   ├── conftest.py               # Shared fixtures (synthetic tracks and frames)
+│   ├── test_player_ball_assigner.py
+│   ├── test_speed_distance.py
+│   ├── test_pipeline_integration.py
+│   └── test_smoke.py             # Full pipeline smoke test (marked slow)
 ├── config.py
 ├── main.py                       # Main analysis entrypoint
 ├── train.py                      # Local YOLO training entrypoint
+├── pytest.ini
 └── requirements.txt
 ```
 
@@ -103,6 +110,45 @@ pip install -r requirements.txt
 - `output/analysis.mp4`
 - `stubs/track_stubs.pkl`
 - `stubs/camera_movement_stubs.pkl`
+
+## Testing
+
+The test suite has three layers with different speed and dependency requirements.
+
+### Fast tests — unit and integration (no ML, no video)
+
+```bash
+pytest
+```
+
+Runs 10 tests in ~5 seconds. No YOLO model or input video required.
+
+| Layer | File | What it covers |
+|---|---|---|
+| Unit | `tests/test_player_ball_assigner.py` | Ball-to-player assignment logic, foot-corner distance |
+| Unit | `tests/test_speed_distance.py` | Speed formula, distance accumulation, Pythagorean math |
+| Integration | `tests/test_pipeline_integration.py` | All post-detection stages on synthetic data — position enrichment, camera motion, team assignment, possession, speed/distance |
+
+### Smoke test — full pipeline (requires input video and YOLO model)
+
+```bash
+pytest -m slow
+```
+
+Runs `main.py` end-to-end and asserts `output/analysis.mp4` is written. Skipped automatically if `input/DFL-Scoutingfeed.mp4` is not present.
+
+> **Before running the smoke test after a dependency bump:** delete `stubs/track_stubs.pkl` and `stubs/camera_movement_stubs.pkl` first. Without this, the pipeline loads cached detections and never calls YOLO or torch — the updated packages are not actually exercised.
+
+```bash
+rm stubs/*.pkl
+pytest -m slow
+```
+
+### Run only fast tests explicitly
+
+```bash
+pytest -m "not slow"
+```
 
 ## Example Outcome
 
