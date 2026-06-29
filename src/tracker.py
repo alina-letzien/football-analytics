@@ -13,6 +13,11 @@ class ByteTrackTracker:
         minimum_matching_threshold: float = 0.8,
         frame_rate: int = 30,
     ):
+        # sv.ByteTrack is deprecated since supervision 0.28.0 and removed in 0.30.0.
+        # Intended migration: `from trackers import ByteTrackTracker` + rename
+        # update_with_detections() → update(). Blocked as of 2026-06: the `trackers`
+        # PyPI release (v2.5.0) ships no Python files — ByteTrackTracker is not
+        # importable. supervision is pinned to <0.30 in requirements.txt until fixed.
         self.tracker = sv.ByteTrack(
             track_activation_threshold=track_activation_threshold,
             lost_track_buffer=lost_track_buffer,
