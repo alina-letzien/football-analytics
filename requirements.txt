@@ -1,6 +1,6 @@
 ultralytics==8.4.78
 opencv-python==4.13.0.92
-torch==2.11.0
+torch==2.12.1
 torchvision==0.27.1
 numpy==2.5.0
 scikit-learn==1.9.0
