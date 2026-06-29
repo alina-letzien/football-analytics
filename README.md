@@ -78,7 +78,7 @@ football-analytics/
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.13+
 
 ### Setup
 
