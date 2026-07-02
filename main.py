@@ -254,7 +254,7 @@ class FootballAnalyzer:
             self.team_assigner.fit_team_colors(video_frames, tracks["players"])
             ta = self.team_assigner
             if ta.kmeans is not None and len(ta.team_colors) == 2:
-                centers = list(ta.team_colors.values())
+                centers = list(ta.kmeans.cluster_centers_)
                 sep = np.linalg.norm(centers[0] - centers[1])
                 c1, c2 = centers
                 print(f"Team colors — T1: B={c1[0]:.0f} G={c1[1]:.0f} R={c1[2]:.0f} | "

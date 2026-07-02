@@ -50,7 +50,7 @@ class TeamAssigner:
         self.team_colors = {}
         self.player_team_assignment = {}
 
-        n = min(self.color_sample_frames, len(frames))
+        n = min(self.color_sample_frames, len(frames), len(all_player_tracks))
         player_colors = []
         for frame_idx in range(n):
             frame = frames[frame_idx]
