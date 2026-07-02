@@ -52,6 +52,9 @@ class FootballAnalyzer:
         self.team_assigner = TeamAssigner(
             n_teams=TEAM_CONFIG["n_teams"],
             random_state=TEAM_CONFIG["kmeans_random_state"],
+            color_sample_frames=TEAM_CONFIG["color_sample_frames"],
+            min_confidence_threshold=TEAM_CONFIG["min_confidence_threshold"],
+            team_color_overrides=TEAM_CONFIG["team_color_overrides"],
         )
 
         print("Initializing player-ball assigner...")
@@ -246,9 +249,19 @@ class FootballAnalyzer:
         else:
             self._add_fallback_transformed_positions(tracks)
 
-        # Team assignment from first frame, then persistent ID lookup.
+        # Fit across the first N frames so a single occluded opening frame can't skew the clusters.
         if tracks["players"]:
-            self.team_assigner.assign_team_color(video_frames[0], tracks["players"][0])
+            self.team_assigner.fit_team_colors(video_frames, tracks["players"])
+            ta = self.team_assigner
+            if ta.kmeans is not None and len(ta.team_colors) == 2:
+                centers = list(ta.team_colors.values())
+                sep = np.linalg.norm(centers[0] - centers[1])
+                c1, c2 = centers
+                print(f"Team colors — T1: B={c1[0]:.0f} G={c1[1]:.0f} R={c1[2]:.0f} | "
+                      f"T2: B={c2[0]:.0f} G={c2[1]:.0f} R={c2[2]:.0f} | "
+                      f"separation: {sep:.1f}/442 ({100*sep/442:.0f}% — if low, increase color_sample_frames or set team_color_overrides)")
+            else:
+                print("Team color fitting skipped — not enough distinct player colors in opening frames")
 
         team_ball_control = []
         for frame_num, player_tracks in enumerate(tracks["players"]):
