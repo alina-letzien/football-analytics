@@ -46,6 +46,10 @@ class TeamAssigner:
 
     def fit_team_colors(self, frames: list, all_player_tracks: list) -> None:
         """Fit team color clusters by aggregating jersey crops across the first N frames"""
+        self.kmeans = None
+        self.team_colors = {}
+        self.player_team_assignment = {}
+
         n = min(self.color_sample_frames, len(frames))
         player_colors = []
         for frame_idx in range(n):
