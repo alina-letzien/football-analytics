@@ -47,9 +47,9 @@ def test_full_downstream_pipeline(synthetic_tracks, synthetic_frames):
     # Step 3 — fallback perspective transform
     _add_fallback_transformed(synthetic_tracks, SCALE)
 
-    # Step 4 — team assignment (only one player → kmeans short-circuits → team defaults to 1)
+    # Step 4 — team assignment (only one player → not enough for KMeans → team defaults to 1)
     team_assigner = TeamAssigner(n_teams=2)
-    team_assigner.assign_team_color(synthetic_frames[0], synthetic_tracks["players"][0])
+    team_assigner.fit_team_colors(synthetic_frames, synthetic_tracks["players"])
     for frame_num, player_frame in enumerate(synthetic_tracks["players"]):
         for pid, pinfo in player_frame.items():
             pinfo["team"] = team_assigner.get_player_team(synthetic_frames[frame_num], pinfo["bbox"], pid)
