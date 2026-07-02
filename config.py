@@ -20,8 +20,26 @@ TRACKER_CONFIG = {
 
 # Team Assignment Configuration
 TEAM_CONFIG = {
-    "n_teams": 2,           # Number of teams to identify
+    "n_teams": 2,                     # Number of teams to identify
     "kmeans_random_state": 42,
+    "color_sample_frames": 10,        # Number of early frames to aggregate jersey colors from
+    "min_confidence_threshold": 0.15, # Relative margin below which assignment is UNKNOWN (team 0)
+    # Override the rendering color for a team (BGR tuple). Leave empty — KMeans picks colors
+    # automatically from jersey crops and works well when kits are visually distinct.
+    #
+    # Use this when:
+    #   1. The team label is swapped (T1 draws yellow boxes on white-kit players) — run once
+    #      without overrides to see which cluster ID maps to which team, then remap.
+    #   2. You want a more vivid display color than the dull average KMeans found.
+    #
+    # Example — white kits for T1, yellow kits for T2 (BGR):
+    #   "team_color_overrides": {1: (230, 230, 230), 2: (0, 215, 255)}
+    #
+    # Note: overrides only affect bounding-box rendering color, not which cluster a player
+    # is assigned to. For genuinely similar kits where players are being misclassified,
+    # raise min_confidence_threshold (more players get UNKNOWN instead of a wrong team)
+    # or raise color_sample_frames to give KMeans more data to work with.
+    "team_color_overrides": {},
 }
 
 # Ball Possession Configuration
