@@ -257,9 +257,10 @@ class FootballAnalyzer:
                 centers = list(ta.kmeans.cluster_centers_)
                 sep = np.linalg.norm(centers[0] - centers[1])
                 c1, c2 = centers
-                print(f"Team colors — T1: B={c1[0]:.0f} G={c1[1]:.0f} R={c1[2]:.0f} | "
+                print(f"Fitted cluster colors (pre-override) — T1: B={c1[0]:.0f} G={c1[1]:.0f} R={c1[2]:.0f} | "
                       f"T2: B={c2[0]:.0f} G={c2[1]:.0f} R={c2[2]:.0f} | "
-                      f"separation: {sep:.1f}/442 ({100*sep/442:.0f}% — if low, increase color_sample_frames or set team_color_overrides)")
+                      f"separation: {sep:.1f}/442 ({100*sep/442:.0f}% — if low, increase color_sample_frames or set team_color_overrides). "
+                      f"Rendered colors may differ if team_color_overrides is set.")
             else:
                 print("Team color fitting skipped — not enough distinct player colors in opening frames")
 

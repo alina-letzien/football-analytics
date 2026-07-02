@@ -25,21 +25,23 @@ class TeamAssigner:
         self.player_team_assignment: Dict[int, int] = {}
         self.kmeans: Optional[KMeans] = None
 
+    def _crop_upper_half(self, frame: np.ndarray, bbox: Dict) -> np.ndarray:
+        """Crop the upper half of the bounding box to avoid shorts and socks, which may have different colors than the jersey"""
+        x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
+        return frame[y1:int((y1 + y2) * 0.5), x1:x2]
+
     def get_player_color(self, frame: np.ndarray, bbox: Dict) -> np.ndarray:
         """
         Extract player shirt color from the upper half of the bounding box in BGR format
-        
+
         Args:
             frame: Input frame
             bbox: Bounding box dictionary with x1, y1, x2, y2
-            
+
         Returns:
             Average color of player's t-shirt (BGR)
         """
-        x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
-        
-        # Crop the upper half of the bounding box to avoid shorts and socks, which may have different colors than the jersey
-        player_region = frame[y1:int((y1 + y2) * 0.5), x1:x2]
+        player_region = self._crop_upper_half(frame, bbox)
         if player_region.size == 0:
             return np.array([0, 0, 0])
         return np.mean(player_region.reshape(-1, 3), axis=0)
@@ -56,11 +58,11 @@ class TeamAssigner:
             frame = frames[frame_idx]
             for _, player_track in all_player_tracks[frame_idx].items():
                 x1, y1, x2, y2 = player_track["bbox"]
-                ix1, iy1, ix2, iy2 = int(x1), int(y1), int(x2), int(y2)
-                crop = frame[iy1:int((iy1 + iy2) * 0.5), ix1:ix2]
+                bbox = {"x1": int(x1), "y1": int(y1), "x2": int(x2), "y2": int(y2)}
+                crop = self._crop_upper_half(frame, bbox)
                 if crop.size == 0:
                     continue
-                player_colors.append(self.get_player_color(frame, {"x1": ix1, "y1": iy1, "x2": ix2, "y2": iy2}))
+                player_colors.append(np.mean(crop.reshape(-1, 3), axis=0))
 
         if len(player_colors) < self.n_teams:
             return
