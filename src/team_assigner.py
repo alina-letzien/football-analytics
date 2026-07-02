@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.cluster import KMeans
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence
 
 UNKNOWN_TEAM_ID = 0
 
@@ -94,7 +94,7 @@ class TeamAssigner:
         confidence = float((d_second - d_best) / (d_second + 1e-6))
         return best_team_id, confidence
 
-    def get_player_team(self, frame: np.ndarray, player_bbox: List[float], player_id: int) -> int:
+    def get_player_team(self, frame: np.ndarray, player_bbox: Sequence[float], player_id: int) -> int:
         """Get the team assignment for a player based on their bounding box and ID"""
         if player_id in self.player_team_assignment:
             return self.player_team_assignment[player_id]
