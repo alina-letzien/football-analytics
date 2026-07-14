@@ -6,7 +6,7 @@ import pickle
 from config import YOLO_CONFIG, TRACKER_CONFIG, TEAM_CONFIG, FIELD_CONFIG, SPEED_CONFIG, VIDEO_CONFIG, POSSESSION_CONFIG, COLORS
 from src.yolo_detector import YOLODetector
 from src.tracker import ByteTrackTracker
-from src.team_assigner import TeamAssigner
+from src.team_assigner import TeamAssigner, UNKNOWN_TEAM_ID
 from src.camera_motion import CameraMotionAnalyzer
 from src.perspective_transformer import PerspectiveTransformer
 from src.speed_distance_calculator import SpeedDistanceCalculator
@@ -281,9 +281,9 @@ class FootballAnalyzer:
 
             if assigned_player != -1 and assigned_player in tracks["players"][frame_num]:
                 tracks["players"][frame_num][assigned_player]["has_ball"] = True
-                team_ball_control.append(tracks["players"][frame_num][assigned_player].get("team", 1))
+                team_ball_control.append(tracks["players"][frame_num][assigned_player].get("team", UNKNOWN_TEAM_ID))
             else:
-                team_ball_control.append(team_ball_control[-1] if team_ball_control else 1)
+                team_ball_control.append(UNKNOWN_TEAM_ID)
 
         self.speed_calculator.add_speed_and_distance_to_tracks(tracks, frame_window=SPEED_CONFIG["frame_window"])
 
