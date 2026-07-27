@@ -1,0 +1,54 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Weekly, Monday 06:00 UTC — full-pipeline smoke test only (see smoke-test job).
+    - cron: "0 6 * * 1"
+
+jobs:
+  fast-tests:
+    name: Fast tests (pytest -m "not slow")
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      # Fast tests (team assigner, ball assigner, speed/distance, pipeline
+      # integration) only exercise numpy/opencv/scikit-learn code paths in
+      # src/ — never torch/ultralytics/supervision. Installing just this
+      # subset keeps every push/PR run fast and free of large downloads.
+      # NOTE: keep these pins in sync with requirements.txt by hand;
+      # Dependabot does not update this list.
+      - name: Install fast-test dependencies
+        run: pip install pytest numpy==2.5.1 opencv-python==5.0.0.93 scikit-learn==1.9.0
+
+      - name: Run fast tests
+        run: pytest -m "not slow"
+
+  smoke-test:
+    name: Full pipeline smoke test (pytest -m slow)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run full-pipeline smoke test
+        env:
+          YOLO_DEVICE: cpu
+        run: pytest -m slow
