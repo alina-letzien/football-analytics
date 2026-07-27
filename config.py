@@ -16,6 +16,7 @@ TRACKER_CONFIG = {
     "lost_track_buffer": 30,        # Frames to keep a lost track alive
     "minimum_matching_threshold": 0.8,
     "frame_rate": 30,
+    "max_ball_interpolation_gap": 15,  # Frames; longer gaps between ball detections are left as no ball position instead of guessed
 }
 
 # Team Assignment Configuration
