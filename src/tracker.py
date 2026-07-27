@@ -12,6 +12,7 @@ class ByteTrackTracker:
         lost_track_buffer: int = 30,
         minimum_matching_threshold: float = 0.8,
         frame_rate: int = 30,
+        max_ball_interpolation_gap: int = 15,
     ):
         # sv.ByteTrack is deprecated since supervision 0.28.0 and removed in 0.30.0.
         # Intended migration: `from trackers import ByteTrackTracker` + rename
@@ -26,6 +27,7 @@ class ByteTrackTracker:
         )
         self.objects = {}
         self.track_history = {}
+        self.max_ball_interpolation_gap = max_ball_interpolation_gap
         self._class_to_id = {"player": 0, "referee": 1, "ball": 2}
         self._id_to_class = {v: k for k, v in self._class_to_id.items()}
 
@@ -145,6 +147,8 @@ class ByteTrackTracker:
             gap = right_idx - left_idx
             if gap <= 1:
                 continue
+            if gap > self.max_ball_interpolation_gap:
+                continue  # too long a gap to guess — leave as no ball position
 
             for step in range(1, gap):
                 t = step / float(gap)

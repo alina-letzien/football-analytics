@@ -46,6 +46,7 @@ class FootballAnalyzer:
             lost_track_buffer=TRACKER_CONFIG["lost_track_buffer"],
             minimum_matching_threshold=TRACKER_CONFIG["minimum_matching_threshold"],
             frame_rate=TRACKER_CONFIG["frame_rate"],
+            max_ball_interpolation_gap=TRACKER_CONFIG["max_ball_interpolation_gap"],
         )
 
         print("Initializing team assigner...")
