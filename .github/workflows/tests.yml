@@ -9,6 +9,34 @@ on:
     - cron: "0 6 * * 1"
 
 jobs:
+  # Detects PRs touching files where fast-tests can't catch a regression:
+  # fast-tests only exercises numpy/opencv/scikit-learn code paths and never
+  # touches torch/ultralytics/supervision, so a change to the pinned CV/ML
+  # deps or to the detector/tracker/camera-motion modules needs the real
+  # pipeline run (pytest -m slow) to be verified.
+  changes:
+    name: Detect sensitive changes
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      sensitive: ${{ steps.check.outputs.sensitive }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check for detection/tracking-sensitive changes
+        id: check
+        run: |
+          CHANGED=$(git diff --name-only "origin/${{ github.event.pull_request.base.ref }}...HEAD")
+          echo "Changed files:"
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -Eq '^(requirements\.txt|config\.py|src/(yolo_detector|tracker|camera_motion)\.py)$'; then
+            echo "sensitive=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sensitive=false" >> "$GITHUB_OUTPUT"
+          fi
+
   fast-tests:
     name: Fast tests (pytest -m "not slow")
     if: github.event_name != 'schedule'
@@ -35,7 +63,12 @@ jobs:
 
   smoke-test:
     name: Full pipeline smoke test (pytest -m slow)
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: changes
+    if: >
+      always() &&
+      (github.event_name == 'schedule' ||
+       github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'pull_request' && needs.changes.outputs.sensitive == 'true'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
