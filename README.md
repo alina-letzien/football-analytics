@@ -1,5 +1,7 @@
 # Football Analytics Pipeline
 
+[![Tests](https://github.com/alina-letzien/football-analytics/actions/workflows/tests.yml/badge.svg)](https://github.com/alina-letzien/football-analytics/actions/workflows/tests.yml)
+
 Computer vision football analysis pipeline with YOLO, ByteTrack, OpenCV, and Python.
 
 ## About the project
@@ -112,6 +114,8 @@ pip install -r requirements.txt
 - `stubs/camera_movement_stubs.pkl`
 
 ## Testing
+
+Fast tests run automatically on every push and pull request via GitHub Actions (`.github/workflows/tests.yml`); the smoke test runs weekly on a schedule and can also be triggered manually from the Actions tab (`workflow_dispatch`).
 
 The test suite has three layers with different speed and dependency requirements.
 
