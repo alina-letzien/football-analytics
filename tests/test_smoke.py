@@ -22,7 +22,7 @@ def test_full_pipeline_completes():
     result = subprocess.run(
         [sys.executable, "main.py"],
         capture_output=True,
-        timeout=600,
+        timeout=1800,  # generous margin for CPU-only CI runners running the full 750-frame video
         cwd=PROJECT_ROOT,
     )
     assert result.returncode == 0, result.stderr.decode()

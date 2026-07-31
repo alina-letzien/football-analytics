@@ -2,12 +2,15 @@
 Configuration file for football analysis system
 """
 
+import os
+
 # YOLO Configuration
 YOLO_CONFIG = {
     "model_path": "yolo26x.pt",  # Options: yolo26n, yolo26s, yolo26m, yolo26l, yolo26x
     "confidence_threshold": 0.5,
     "iou_threshold": 0.45,
-    "device": "mps",  # "cpu", "mps" (Apple Silicon), or GPU index like "0"
+    # "cpu", "mps" (Apple Silicon), or GPU index like "0"; override with YOLO_DEVICE env var (used in CI, which has no mps)
+    "device": os.environ.get("YOLO_DEVICE", "mps"),
 }
 
 # Tracker Configuration (ByteTrack)
