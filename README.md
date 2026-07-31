@@ -115,7 +115,11 @@ pip install -r requirements.txt
 
 ## Testing
 
-Fast tests run automatically on every push and pull request via GitHub Actions (`.github/workflows/tests.yml`); the smoke test runs weekly on a schedule and can also be triggered manually from the Actions tab (`workflow_dispatch`).
+Fast tests run automatically on every push and pull request via GitHub Actions (`.github/workflows/tests.yml`). 
+
+The smoke test runs weekly on a schedule, can be triggered manually from the Actions tab (`workflow_dispatch`), and also runs automatically on any pull request that changes `requirements.txt`, `config.py`, or `src/{yolo_detector,tracker,camera_motion}.py` — the files where fast tests alone can't catch a regression.
+
+> **Note:** This CI gate only proves the pipeline runs without crashing — it does not check detection or tracking quality. For changes to the files above, also review `output/analysis.mp4` visually once the gate is green.
 
 The test suite has three layers with different speed and dependency requirements.
 
