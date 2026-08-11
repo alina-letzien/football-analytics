@@ -15,26 +15,20 @@ class ByteTrackTracker:
         frame_rate: int = 30,
         max_ball_interpolation_gap: int = 15,
     ):
-        # Migrated from sv.ByteTrack (deprecated since supervision 0.28.0, slated for
-        # removal in 0.30.0) to the `trackers` package. Keep this wrapper's own
-        # constructor signature/param names stable so config.py and callers don't need
-        # to change; translate to the upstream package's names here instead.
-        # minimum_matching_threshold -> minimum_iou_threshold is a straight rename,
-        # same semantics (IoU threshold for the Hungarian-matching association step).
+        # Migrated from sv.ByteTrack to the `trackers` package (deprecated since supervision 0.28.0, slated for removal in 0.30.0).
         #
-        # Known behavior change vs. sv.ByteTrack: a brand-new track's tracker_id is
-        # always -1 on the frame it's spawned (trackers.core.bytetrack.tracker's
-        # _spawn_new_tracks never checks minimum_consecutive_frames at spawn time) —
-        # every track's real ID appears starting on its *second* observed frame,
-        # regardless of this setting. That startup delay is structural to this
-        # library version and can't be configured away. minimum_consecutive_frames
-        # only controls how fast a track regains a confirmed ID after being lost and
-        # re-matched; pinned to 1 (upstream default 2) for parity with
-        # sv.ByteTrack's old default there.
+        # minimum_iou_threshold is on the opposite scale from minimum_matching_threshold:
+        # sv.ByteTrack matched on IoU *distance* (IoU >= 1 - threshold, lenient),
+        # trackers matches on IoU *similarity* directly (IoU >= threshold, strict).
+        # Passing the value through unconverted caused an ~11x jump in ID churn.
+        #
+        # minimum_consecutive_frames=1: matches sv.ByteTrack's old default. Note a new
+        # track's tracker_id is still -1 on its spawn frame regardless of this value
+        # (trackers always withholds the real ID until the following matched frame).
         self.tracker = _UpstreamByteTrack(
             track_activation_threshold=track_activation_threshold,
             lost_track_buffer=lost_track_buffer,
-            minimum_iou_threshold=minimum_matching_threshold,
+            minimum_iou_threshold=1.0 - minimum_matching_threshold,
             frame_rate=frame_rate,
             minimum_consecutive_frames=1,
         )
