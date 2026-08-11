@@ -1,11 +1,12 @@
 import numpy as np
 from typing import Dict, List, Optional
 import supervision as sv
+from trackers import ByteTrackTracker as _UpstreamByteTrack
 
 
 class ByteTrackTracker:
     """Track objects across frames using ByteTrack."""
-    
+
     def __init__(
         self,
         track_activation_threshold: float = 0.25,
@@ -14,16 +15,28 @@ class ByteTrackTracker:
         frame_rate: int = 30,
         max_ball_interpolation_gap: int = 15,
     ):
-        # sv.ByteTrack is deprecated since supervision 0.28.0 and removed in 0.30.0.
-        # Intended migration: `from trackers import ByteTrackTracker` + rename
-        # update_with_detections() → update(). Blocked as of 2026-06: the `trackers`
-        # PyPI release (v2.5.0) ships no Python files — ByteTrackTracker is not
-        # importable. supervision is pinned to <0.30 in requirements.txt until fixed.
-        self.tracker = sv.ByteTrack(
+        # Migrated from sv.ByteTrack (deprecated since supervision 0.28.0, slated for
+        # removal in 0.30.0) to the `trackers` package. Keep this wrapper's own
+        # constructor signature/param names stable so config.py and callers don't need
+        # to change; translate to the upstream package's names here instead.
+        # minimum_matching_threshold -> minimum_iou_threshold is a straight rename,
+        # same semantics (IoU threshold for the Hungarian-matching association step).
+        #
+        # Known behavior change vs. sv.ByteTrack: a brand-new track's tracker_id is
+        # always -1 on the frame it's spawned (trackers.core.bytetrack.tracker's
+        # _spawn_new_tracks never checks minimum_consecutive_frames at spawn time) —
+        # every track's real ID appears starting on its *second* observed frame,
+        # regardless of this setting. That startup delay is structural to this
+        # library version and can't be configured away. minimum_consecutive_frames
+        # only controls how fast a track regains a confirmed ID after being lost and
+        # re-matched; pinned to 1 (upstream default 2) for parity with
+        # sv.ByteTrack's old default there.
+        self.tracker = _UpstreamByteTrack(
             track_activation_threshold=track_activation_threshold,
             lost_track_buffer=lost_track_buffer,
-            minimum_matching_threshold=minimum_matching_threshold,
+            minimum_iou_threshold=minimum_matching_threshold,
             frame_rate=frame_rate,
+            minimum_consecutive_frames=1,
         )
         self.objects = {}
         self.track_history = {}
@@ -49,7 +62,7 @@ class ByteTrackTracker:
                 confidence=np.empty((0,), dtype=np.float32),
                 class_id=np.empty((0,), dtype=np.int32),
             )
-            _ = self.tracker.update_with_detections(empty)
+            _ = self.tracker.update(empty)
             self.objects = {}
             return self.objects
 
@@ -70,7 +83,7 @@ class ByteTrackTracker:
         )
 
         sv_detections = sv.Detections(xyxy=xyxy, confidence=confidence, class_id=class_id)
-        tracked = self.tracker.update_with_detections(sv_detections)
+        tracked = self.tracker.update(sv_detections)
 
         self.objects = {}
         if tracked.confidence is None or tracked.class_id is None or tracked.tracker_id is None:
@@ -82,7 +95,10 @@ class ByteTrackTracker:
             tracked.class_id,
             tracked.tracker_id,
         ):
-            if track_id is None:
+            # trackers.ByteTrackTracker (unlike sv.ByteTrack) includes detections that
+            # haven't yet met minimum_consecutive_frames, marked with tracker_id -1.
+            # Drop them rather than let them collide under an `objects[-1]` key.
+            if track_id is None or track_id == -1:
                 continue
             x1, y1, x2, y2 = [int(v) for v in bbox.tolist()]
             center = ((x1 + x2) // 2, (y1 + y2) // 2)
