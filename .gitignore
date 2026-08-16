@@ -47,6 +47,7 @@ input/*.mov
 output/*.mp4
 output/*.avi
 output/*.mov
+output/*.json
 stubs/*.pkl
 runs/
 *.pt

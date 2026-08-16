@@ -11,6 +11,7 @@ from src.camera_motion import CameraMotionAnalyzer
 from src.perspective_transformer import PerspectiveTransformer
 from src.speed_distance_calculator import SpeedDistanceCalculator
 from src.player_ball_assigner import PlayerBallAssigner
+from src.pipeline_summary import compute_summary_stats, write_summary_json
 
 
 class FootballAnalyzer:
@@ -287,6 +288,10 @@ class FootballAnalyzer:
                 team_ball_control.append(UNKNOWN_TEAM_ID)
 
         self.speed_calculator.add_speed_and_distance_to_tracks(tracks, frame_window=SPEED_CONFIG["frame_window"])
+
+        summary_stats = compute_summary_stats(tracks, num_frames=len(video_frames))
+        summary_path = os.path.splitext(self.output_path)[0] + "_summary.json"
+        write_summary_json(summary_stats, summary_path)
 
         output_frames = []
         for frame_num, frame in enumerate(video_frames):
