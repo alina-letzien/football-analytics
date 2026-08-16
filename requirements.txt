@@ -5,5 +5,5 @@ torchvision==0.28.0
 numpy==2.5.2
 scikit-learn==1.9.0
 supervision==0.29.1
-trackers==2.5.0.post0
+trackers==2.6.0
 pytest
