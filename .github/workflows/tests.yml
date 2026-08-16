@@ -30,10 +30,16 @@ jobs:
 
       - name: Check for detection/tracking-sensitive changes
         id: check
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
-          CHANGED=$(git diff --name-only "origin/${{ github.event.pull_request.base.ref }}...HEAD")
+          CHANGED=$(git diff --name-only "origin/$BASE_REF...HEAD")
           echo "Changed files:"
           echo "$CHANGED"
+          # Keep this regex in sync with the identical one in
+          # .github/workflows/video-review-gate.yml's `changes` job — the two
+          # gates (smoke-test trigger, merge-block) will silently desync if
+          # only one is updated.
           if echo "$CHANGED" | grep -Eq '^(requirements\.txt|config\.py|src/(yolo_detector|tracker|camera_motion)\.py)$'; then
             echo "sensitive=true" >> "$GITHUB_OUTPUT"
           else
@@ -88,3 +94,14 @@ jobs:
         env:
           YOLO_DEVICE: cpu
         run: pytest -m slow
+
+      - name: Upload smoke-test output artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-test-output
+          path: |
+            output/analysis.mp4
+            output/analysis_summary.json
+          retention-days: 14
+          if-no-files-found: warn

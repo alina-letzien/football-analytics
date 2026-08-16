@@ -110,6 +110,7 @@ pip install -r requirements.txt
 ### Output and generated files
 
 - `output/analysis.mp4`
+- `output/analysis_summary.json` — sanity metrics used by the smoke test's tolerance-band assertions (see Testing below)
 - `stubs/track_stubs.pkl`
 - `stubs/camera_movement_stubs.pkl`
 
@@ -119,7 +120,7 @@ Fast tests run automatically on every push and pull request via GitHub Actions (
 
 The smoke test runs weekly on a schedule, can be triggered manually from the Actions tab (`workflow_dispatch`), and also runs automatically on any pull request that changes `requirements.txt`, `config.py`, or `src/{yolo_detector,tracker,camera_motion}.py` — the files where fast tests alone can't catch a regression.
 
-> **Note:** This CI gate only proves the pipeline runs without crashing — it does not check detection or tracking quality. For changes to the files above, also review `output/analysis.mp4` visually once the gate is green.
+The smoke test also asserts tolerance-band sanity metrics on `output/analysis_summary.json` (ball detection rate, player track-ID count, team balance, speed bounds — see `tests/test_smoke.py` and `calibrate_smoke_thresholds.py`), so a detector/tracker regression fails CI instead of silently passing "didn't crash." These bounds don't catch everything a human eye would (e.g. a team-color mixup that still balances two teams), so `.github/workflows/video-review-gate.yml` additionally blocks merging any sensitive-file PR until it carries a `video-reviewed` label — download the `smoke-test-output` artifact from the Tests run (kept for 14 days), watch `output/analysis.mp4`, then add the label. The label is stripped automatically on every new commit, so re-review is required after each push.
 
 The test suite has three layers with different speed and dependency requirements.
 
@@ -129,12 +130,14 @@ The test suite has three layers with different speed and dependency requirements
 pytest
 ```
 
-Runs 10 tests in ~5 seconds. No YOLO model or input video required.
+Runs 25 tests in ~2 seconds. No YOLO model or input video required.
 
 | Layer | File | What it covers |
 |---|---|---|
 | Unit | `tests/test_player_ball_assigner.py` | Ball-to-player assignment logic, foot-corner distance |
 | Unit | `tests/test_speed_distance.py` | Speed formula, distance accumulation, Pythagorean math |
+| Unit | `tests/test_pipeline_summary.py` | Sanity-metric computation from the tracks dict (`src/pipeline_summary.py`) |
+| Unit | `tests/test_calibrate_thresholds.py` | Tolerance-band derivation formula (`calibrate_smoke_thresholds.py`) |
 | Integration | `tests/test_pipeline_integration.py` | All post-detection stages on synthetic data — position enrichment, camera motion, team assignment, possession, speed/distance |
 
 ### Smoke test — full pipeline (requires input video and YOLO model)
@@ -143,9 +146,11 @@ Runs 10 tests in ~5 seconds. No YOLO model or input video required.
 pytest -m slow
 ```
 
-Runs `main.py` end-to-end and asserts `output/analysis.mp4` is written. Skipped automatically if `input/DFL-Scoutingfeed.mp4` is not present.
+Runs `main.py` end-to-end and asserts `output/analysis.mp4` is written, plus the tolerance-band sanity checks described above. Skipped automatically if `input/DFL-Scoutingfeed.mp4` is not present.
 
 > **Before running the smoke test after a dependency bump:** delete `stubs/track_stubs.pkl` and `stubs/camera_movement_stubs.pkl` first. Without this, the pipeline loads cached detections and never calls YOLO or torch — the updated packages are not actually exercised.
+
+> **Recalibrating the tolerance bands:** after any intentional change to detection/tracking behavior (model version, confidence thresholds, an `ultralytics`/`torch`/`supervision` dependency bump), run `python calibrate_smoke_thresholds.py output/analysis_summary.json` against a fresh baseline run and paste the printed constants into `tests/test_smoke.py`, keeping the accompanying explanatory comments the script prints alongside `AVG_REFEREES_HIGH` and `SPEED_KMH_MAX_CEILING`.
 
 ```bash
 rm stubs/*.pkl
