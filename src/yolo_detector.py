@@ -13,7 +13,7 @@ class YOLODetector:
         self.iou = iou
 
     def detect(self, frame: np.ndarray) -> Dict:
-        results = self.model(frame, conf=self.conf, iou=self.iou, device=self.device)
+        results = self.model(frame, conf=self.conf, iou=self.iou, device=self.device, nms=False)
         
         detections = {
             "players": [],
