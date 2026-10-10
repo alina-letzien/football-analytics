@@ -52,6 +52,7 @@ stubs/*.pkl
 runs/
 *.pt
 datasets/*
+analysis_summary.json
 
 # Logs
 *.log
